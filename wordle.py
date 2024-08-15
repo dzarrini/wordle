@@ -13,7 +13,49 @@ for line in open(FI, "r"):
 for line in open("shuffled_real_wordles.txt", "r"):
   answers.append(line.rstrip())
 
-def num_matches(word, index, word_list, prob):
+def accept(color, word, candidate, word_length=W_LENGTH):
+  i = 0
+  j = 0
+
+  char_map = [-1] * 26
+  for i in range(word_length):
+    c = color[i]
+    char = word[i]
+    if c == "G":
+      if char != candidate[i]:
+        return False
+      char_map[ord(char) - ord('a')] = i
+    elif c == "Y":
+      j = char_map[ord(char) - ord('a')] + 1
+      y_match = False
+      while j < W_LENGTH:
+        if i == j or (j < word_length and color[j] == 'G'):
+          j = j + 1
+          continue
+        if candidate[j] == char:
+          y_match = True
+          break
+        j = j + 1
+      if y_match == False:
+        return False
+      char_map[ord(char) - ord('a')] = j
+    elif c == "R":
+      j = char_map[ord(char) - ord('a')] + 1
+      while j < word_length:
+        if color[j] == 'G':
+          j = j + 1
+          continue
+        if candidate[j] == char:
+          return False
+        j = j + 1
+  return True
+
+# print(accept('RRYRY', 'speed', 'abide'))
+# print(accept('YRYYR', 'speed', 'erase'))
+# print(accept('GRGRR', 'speed', 'steal'))
+# print(accept('RYGYR', 'speed', 'crepe'))
+
+def num_matches(color, word, index, word_list, prob):
   total = len(word_list)
 
   if index == W_LENGTH:
@@ -29,33 +71,30 @@ def num_matches(word, index, word_list, prob):
   char = word[index]
   for w in word_list:
     # This is green.
-    if char == w[index]:
+    if accept(color + 'G', word, w, index + 1):
       wrd_green.append(w)
-    elif char in w:
+    elif accept(color + 'Y', word, w, index + 1):
       wrd_yellow.append(w)
-    elif char not in w:
+    elif accept(color + 'R', word, w, index + 1):
       wrd_grey.append(w)
 
-  def num_removed(color, list_of_interest):
+  def num_removed(c, list_of_interest):
     probability_picked = prob * len(list_of_interest) / total
     words_removed = total - len(list_of_interest)
-    return (probability_picked * words_removed) + num_matches(word, index + 1, list_of_interest, probability_picked)
+    return (probability_picked * words_removed) + num_matches(color + c, word, index + 1, list_of_interest, probability_picked)
 
-  green_match = num_removed("green", wrd_green)
-  grey_match = num_removed("yellow", wrd_grey)
-  yellow_match = num_removed("grey", wrd_yellow)
+  green_match = num_removed('G', wrd_green)
+  grey_match = num_removed('R', wrd_grey)
+  yellow_match = num_removed('Y', wrd_yellow)
 
   return green_match + grey_match + yellow_match
-
-def run(word):
-  print(f'{word}: {num_matches(word, 0, word_list)}')
 
 def best_word(available_words):
   max_score = 0
   best_word = None
   rst = []
   for word in word_list:
-    number = num_matches(word, 0, available_words, 1)
+    number = num_matches('', word, 0, available_words, 1)
     rst.append((number, word))
     if number > max_score:
       max_score = number
@@ -66,33 +105,14 @@ def best_word(available_words):
     print(f'{i+1}.{rst[i][1]}: ({len(available_words) - rst[i][0]})')
   return best_word
 
-
-def guess(color, word, all_words):
-  old_words = all_words
-  new_words = []
-  for i in range(W_LENGTH):
-    c = color[i]
-    if c == "G":
-      for w in old_words:
-        if w[i] == word[i]:
-          new_words.append(w)
-    elif c == "R":
-      for w in old_words:
-        if word[i] not in w[i:]:
-          new_words.append(w)
-    elif c == "Y":
-      for w in old_words:
-        if w[i] != word[i] and word[i] in w:
-          new_words.append(w)
-    if len(new_words) == 0:
-      return old_words
-    old_words = new_words
-    new_words = []
-  return old_words
-
+def guess(color, word, candidates):
+  def accept_(candidate):
+    return accept(color, word, candidate)
+  return list(filter(accept_, candidates))
 
 def play():
-  WORD = "speed"
+  # WORD = "speed"
+  WORD = "share"
   print(WORD)
   color = input("color: ")
   all_words = guess(color, WORD, answers)
@@ -111,6 +131,8 @@ def play():
       print(all_words[0])
       exit(0)
 
-# print(best_word(answers))
+print(best_word(answers))
 # print(best_word(word_list))
-play()
+# play()
+# color = "GRRRG"
+# print(guess(color, "venue", ['valve', 'value']))
