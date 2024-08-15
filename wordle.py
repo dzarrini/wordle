@@ -6,6 +6,7 @@ FI = "combined_wordlist.txt"
 word_list = []
 answers = []
 
+from concurrent.futures import ThreadPoolExecutor;
 
 for line in open(FI, "r"):
   word_list.append(line.rstrip())
@@ -58,10 +59,10 @@ def accept(color, word, candidate, word_length=W_LENGTH):
 def num_matches(color, word, index, word_list, prob):
   total = len(word_list)
 
-  if index == W_LENGTH:
+  if total == 0:
     return 0
 
-  if total == 0:
+  if index == W_LENGTH:
     return 0
 
   wrd_green = []
@@ -87,23 +88,28 @@ def num_matches(color, word, index, word_list, prob):
   grey_match = num_removed('R', wrd_grey)
   yellow_match = num_removed('Y', wrd_yellow)
 
-  return green_match + grey_match + yellow_match
+  rst = green_match + grey_match + yellow_match
+
+  if index == 0:
+    return (rst, word)
+  return rst
 
 def best_word(available_words):
   max_score = 0
   best_word = None
   rst = []
-  for word in word_list:
-    number = num_matches('', word, 0, available_words, 1)
-    rst.append((number, word))
-    if number > max_score:
-      max_score = number
-      best_word = word
+  with ThreadPoolExecutor(max_workers=20) as executor:
+    def run(word):
+      return num_matches('', word, 0, available_words, 1)
+    rst = executor.map(run, available_words)
+
+
+  rst = list(rst)
 
   rst.sort(key=lambda tup: tup[0], reverse=True)
   for i in range(min(16,len(rst))):
     print(f'{i+1}.{rst[i][1]}: ({len(available_words) - rst[i][0]})')
-  return best_word
+  return rst[0][1]
 
 def guess(color, word, candidates):
   def accept_(candidate):
@@ -112,7 +118,7 @@ def guess(color, word, candidates):
 
 def play():
   # WORD = "speed"
-  WORD = "share"
+  WORD = "raise"
   print(WORD)
   color = input("color: ")
   all_words = guess(color, WORD, answers)
