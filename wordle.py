@@ -62,8 +62,8 @@ def best_word(available_words):
       best_word = word
 
   rst.sort(key=lambda tup: tup[0], reverse=True)
-  for i in range(min(16,len(rst))):
-    print(f'{i+1}.{rst[i][1]}: ({len(available_words) - rst[i][0]})')
+  # for i in range(min(16,len(rst))):
+  #   print(f'{i+1}.{rst[i][1]}: ({len(available_words) - rst[i][0]})')
   return best_word
 
 
@@ -109,6 +109,6 @@ def play():
       print(all_words[0])
       exit(0)
 
-print(best_word(answers))
-# print(best_word(word_list))
-play()
+# print(best_word(answers))
+print(best_word(word_list))
+# play()
