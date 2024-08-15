@@ -53,20 +53,19 @@ def run(word):
 def best_word(available_words):
   max_score = 0
   best_word = None
-  # rst = []
+  rst = []
   for word in word_list:
     number = num_matches(word, 0, available_words, 1)
-    # rst.append((number, word))
+    rst.append((number, word))
     if number > max_score:
       max_score = number
       best_word = word
 
-  # rst.sort(key=lambda tup: tup[0], reverse=True)
-  # for i in range(16):
-  #   print(f'{i+1}.{rst[i][1]}: ({2315 - rst[i][0]})')
+  rst.sort(key=lambda tup: tup[0], reverse=True)
+  for i in range(min(16,len(rst))):
+    print(f'{i+1}.{rst[i][1]}: ({len(available_words) - rst[i][0]})')
   return best_word
 
-# print(best_word(answers))
 
 def guess(color, word, all_words):
   old_words = all_words
@@ -93,15 +92,23 @@ def guess(color, word, all_words):
 
 
 def play():
-  all_words = answers
+  WORD = "roate"
+  print(WORD)
+  color = input("color: ")
+  all_words = guess(color, WORD, answers)
+  if len(all_words) == 1:
+    print(all_words[0])
+    exit(0)
+
   while True:
     word = best_word(all_words)
-    print(word)
     color = input("color: ")
-
     all_words = guess(color, word, all_words)
+    print(all_words)
     if len(all_words) == 1:
       print(all_words[0])
       exit(0)
 
+print(best_word(answers))
+# print(best_word(word_list))
 play()
