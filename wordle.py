@@ -111,6 +111,6 @@ def play():
       print(all_words[0])
       exit(0)
 
-# print(best_word(answers))
+print(best_word(answers))
 # print(best_word(word_list))
-play()
+# play()
