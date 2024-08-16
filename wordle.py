@@ -101,7 +101,7 @@ def best_word(available_words):
   with ThreadPoolExecutor(max_workers=20) as executor:
     def run(word):
       return num_matches('', word, 0, available_words, 1)
-    rst = executor.map(run, available_words)
+    rst = executor.map(run, word_list)
 
 
   rst = list(rst)
