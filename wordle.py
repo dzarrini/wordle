@@ -13,14 +13,18 @@ for line in open(FI, "r"):
 for line in open("shuffled_real_wordles.txt", "r"):
   answers.append(line.rstrip())
 
-def num_matches(word, index, word_list, prob):
+def num_matches(level, color, word, index, word_list, prob):
   total = len(word_list)
-
-  if index == W_LENGTH:
-    return 0
 
   if total == 0:
     return 0
+
+  if index == W_LENGTH:
+    print(f'{word} {prob} ({color}): {word_list}')
+    if level == 0:
+      return 0
+    return 0
+    return prob * best_word(word_list, level - 1)
 
   wrd_green = []
   wrd_grey = []
@@ -36,36 +40,31 @@ def num_matches(word, index, word_list, prob):
     elif char not in w:
       wrd_grey.append(w)
 
-  def num_removed(color, list_of_interest):
+  def num_removed(c, list_of_interest):
     probability_picked = prob * len(list_of_interest) / total
     words_removed = total - len(list_of_interest)
-    return (probability_picked * words_removed) + num_matches(word, index + 1, list_of_interest, probability_picked)
+    return (probability_picked * words_removed) + num_matches(level, color + c, word, index + 1, list_of_interest, probability_picked)
 
-  green_match = num_removed("green", wrd_green)
-  grey_match = num_removed("yellow", wrd_grey)
-  yellow_match = num_removed("grey", wrd_yellow)
+  green_match = num_removed('G', wrd_green)
+  grey_match = num_removed('R', wrd_grey)
+  yellow_match = num_removed('Y', wrd_yellow)
 
   return green_match + grey_match + yellow_match
 
 def run(word):
-  print(f'{word}: {num_matches(word, 0, word_list)}')
+  print(f'{word}: {num_matches(0,"", word, 0, answers, 1)}')
 
-def best_word(available_words):
+run('roate')
+
+def best_word(available_words, level):
   max_score = 0
   best_word = None
-  rst = []
   for word in word_list:
-    number = num_matches(word, 0, available_words, 1)
-    rst.append((number, word))
+    number = num_matches(level, word, 0, available_words, 1)
     if number > max_score:
       max_score = number
       best_word = word
-
-  rst.sort(key=lambda tup: tup[0], reverse=True)
-  for i in range(min(16,len(rst))):
-    print(f'{i+1}.{rst[i][1]}: ({len(available_words) - rst[i][0]})')
-  return best_word
-
+  return max_score
 
 def guess(color, word, all_words):
   old_words = all_words
@@ -111,6 +110,6 @@ def play():
       print(all_words[0])
       exit(0)
 
-print(best_word(answers))
+# print(best_word(answers))
 # print(best_word(word_list))
 # play()
