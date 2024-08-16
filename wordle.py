@@ -20,11 +20,15 @@ def num_matches(level, color, word, index, word_list, prob):
     return 0
 
   if index == W_LENGTH:
-    print(f'{word} {prob} ({color}): {word_list}')
+    # print(f'{word} {prob} ({color}): {word_list}')
     if level == 0:
       return 0
-    return 0
-    return prob * best_word(word_list, level - 1)
+    max_score = 0
+    for w in answers:
+      number = num_matches(level - 1,'', w, 0, word_list, 1)
+      if number > max_score:
+        max_score = number
+    return prob * max_score
 
   wrd_green = []
   wrd_grey = []
@@ -52,19 +56,27 @@ def num_matches(level, color, word, index, word_list, prob):
   return green_match + grey_match + yellow_match
 
 def run(word):
-  print(f'{word}: {num_matches(0,"", word, 0, answers, 1)}')
+  print(f'{word}: {num_matches(1,"", word, 0, answers, 1)}')
 
-run('roate')
+# run('roate')
 
 def best_word(available_words, level):
   max_score = 0
   best_word = None
-  for word in word_list:
-    number = num_matches(level, word, 0, available_words, 1)
+  rst = []
+  for i, word in enumerate(word_list):
+    if i % 5 == 0:
+      print(i)
+    number = num_matches(level, "", word, 0, available_words, 1)
+    rst.append((number, word))
     if number > max_score:
       max_score = number
       best_word = word
-  return max_score
+
+  rst.sort(key=lambda tup: tup[0], reverse=True)
+  for i in range(min(20, len(rst))):
+    print(f'{i+1}.{rst[i][1]}: ({len(available_words) - rst[i][0]})')
+  return best_word
 
 def guess(color, word, all_words):
   old_words = all_words
@@ -110,6 +122,6 @@ def play():
       print(all_words[0])
       exit(0)
 
-# print(best_word(answers))
+print(best_word(answers, 1))
 # print(best_word(word_list))
 # play()
