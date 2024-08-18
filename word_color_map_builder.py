@@ -3,6 +3,7 @@
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from color import COLORS
 import pickle
+import gzip
 
 combined_wordlist = []
 answer_wordlist = []
@@ -58,5 +59,5 @@ def build_word_color_map():
 
 if __name__ == '__main__':
   rst = build_word_color_map()
-  with open('word_color_bank.pkl', 'wb') as f:
+  with gzip.open('word_color_map.pkl.gz', 'wb') as f:
     pickle.dump(rst, f)
