@@ -1,10 +1,12 @@
-#include<iostream>
-#include<vector>
-#include<string>
-#include<memory>
-#include<fstream>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <memory>
+#include <fstream>
 #include <unordered_map>
 #include <iomanip>
+#include <thread>
+#include <cmath>
 
 using namespace std;
 
@@ -70,15 +72,61 @@ std::unordered_map<std::string,std::unordered_map<std::string, vector<string>>>
 
 double average_matches(
     const vector<string>& word_list,
+    const string& word) {
+  if (word_list.empty()) {
+    return 0;
+  }
+  if (word_list.size() == 1) {
+    return 1;
+  }
+  if (word_list.size() == 2) {
+    return 1;
+  }
+  double sz = word_list.size();
+  std::unordered_map<std::string, vector<string>> color_map;
+  for(const auto& candidate: word_list) {
+    string color = make_color(word, candidate);
+    color_map[color].push_back(candidate);
+  }
+  if (color_map.size() == sz) {
+    return 0;
+  }
+  double result = 0;
+  double words_sz = 0;
+  for(const auto& [color, words] : color_map) {
+    if (words.empty()) {
+      continue;
+    }
+    words_sz = words.size();
+    result += (words_sz / sz) * ( words_sz);
+  }
+  return result;
+}
+
+double average_matches(
+    int level,
+    const vector<string>& word_list,
     const vector<string>& combined_wordlist) {
+  if (word_list.empty()) {
+    return 0;
+  }
+  if (word_list.size() == 1) {
+    return 1;
+  }
+  if (word_list.size() == 2) {
+    return 1;
+  }
   double sz = word_list.size();
   string best_word;
-  double best_rst = 0;
+  double best_rst = 20000;
   for (const auto& w : combined_wordlist) {
     std::unordered_map<std::string, vector<string>> color_map;
     for(const auto& candidate: word_list) {
       string color = make_color(w, candidate);
       color_map[color].push_back(candidate);
+    }
+    if (color_map.size() == sz) {
+      return 0;
     }
     double result = 0;
     double words_sz = 0;
@@ -86,15 +134,29 @@ double average_matches(
       if (words.empty()) {
         continue;
       }
+
+      // cout << color << ", " << words.size() << endl;
       words_sz = words.size();
-      result += (words_sz / sz) * ( sz - words_sz);
+      if (level == 0) {
+        result += (words_sz / sz) * ( words_sz );
+      } else {
+        result += (words_sz / sz) * ( average_matches(
+              level - 1,
+              words,
+              combined_wordlist));
+      }
     }
-    if (result > best_rst) {
+    if (level == 1) {
+      cout << setprecision (10) << result << ": " << w << endl;
+    }
+    if (result < best_rst) {
       best_rst = result;
       best_word = w;
     }
+    if (abs(1 - best_rst) < 0.00001) {
+      return 1;
+    }
   }
-  cout << best_word << ": " << best_rst << endl;
   return best_rst;
 }
 
@@ -107,6 +169,13 @@ int main() {
   // cout << make_color("speed", "steal") << endl;
   // cout << make_color("speed", "crepe") << endl;
   // auto world_color_map = build_word_color_map(combined_wordlist, answer_wordlist);
-  cout << setprecision (8) << average_matches(answer_wordlist, combined_wordlist) << endl;
+  // cout << setprecision (12) << average_matches(1,
+  //     answer_wordlist, 
+  //     answer_wordlist) << endl;
+  cout << setprecision (12) << average_matches(1,
+      answer_wordlist, 
+      combined_wordlist) << endl;
+  // cout << setprecision (12) << average_matches(answer_wordlist, answer_wordlist) << endl;
+  cout << setprecision (12) << average_matches(answer_wordlist, "raise") << endl;
   return 0;
 }
