@@ -2,7 +2,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -std=c++17 -Wall -Wextra -pedantic -O2
+CXXFLAGS = -std=c++20 -Wall -Wextra -pedantic -O3
 
 # Target executable name
 TARGET = wordle_binary
