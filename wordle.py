@@ -15,7 +15,7 @@ with open("words/shuffled_real_wordles.txt", "r") as fi:
   for line in fi:
     answer_wordlist.append(line.rstrip())
 
-def num_matches(level, color, word, index, word_list, prob):
+def num_matches(level, color, word, index, word_list):
   total = len(word_list)
 
   if total == 0:
@@ -26,11 +26,15 @@ def num_matches(level, color, word, index, word_list, prob):
     if level == 0:
       return 0
     max_score = 0
+    best_word = None
     for w in answer_wordlist:
-      number = num_matches(level - 1,'', w, 0, word_list, 1)
+      number = num_matches(level - 1,'', w, 0, word_list)
       if number > max_score:
         max_score = number
-    return prob * max_score
+        best_word = w
+    if level == 2:
+      print(f'{color}: {best_word}')
+    return max_score
 
   wrd_green = []
   wrd_grey = []
@@ -47,10 +51,10 @@ def num_matches(level, color, word, index, word_list, prob):
       wrd_grey.append(w)
 
   def num_removed(c, list_of_interest):
-    probability_picked = prob * len(list_of_interest) / total
+    probability_picked = len(list_of_interest) / total
     words_removed = total - len(list_of_interest)
     return (probability_picked * words_removed) + \
-        num_matches(level, color + c, word, index + 1, list_of_interest, probability_picked)
+        probability_picked * num_matches(level, color + c, word, index + 1, list_of_interest)
 
   green_match = num_removed('G', wrd_green)
   grey_match = num_removed('R', wrd_grey)
@@ -59,14 +63,14 @@ def num_matches(level, color, word, index, word_list, prob):
   return green_match + grey_match + yellow_match
 
 def run(word):
-  print(f'{word}: {num_matches(2,"", word, 0, answer_wordlist, 1)}')
+  print(f'{word}: {num_matches(1,"", word, 0, answer_wordlist)}')
 
 def best_word(available_words, level):
   rst = []
   i = 1
   with ProcessPoolExecutor() as executor:
     futures = {executor.submit(
-      num_matches, level, "", word, 0, available_words, 1): word for word in combined_wordlist}
+      num_matches, level, "", word, 0, available_words): word for word in combined_wordlist}
     for future in as_completed(futures):
       word = futures[future]
       try:
@@ -81,4 +85,5 @@ def best_word(available_words, level):
   return rst
 
 if __name__ == '__main__':
-  print(best_word(answer_wordlist, 0)[0][1])
+  # print(best_word(answer_wordlist, 0)[0])
+  run("salet")
